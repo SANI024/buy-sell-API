@@ -1,0 +1,6 @@
+@buy_sell_project_HostAddress = http://localhost:5113
+
+GET {{buy_sell_project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
