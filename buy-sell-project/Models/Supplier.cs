@@ -6,7 +6,8 @@
         public int UserId { get; set; }
         public User User { get; set; }
         public string CompanyName { get; set; }
-        public string Phone { get; set; }
-        public ICollection<Purchase> Purchases { get; set; }
+
+        
+        public ICollection<SupplierProduct> Products { get; set; }
     }
 }

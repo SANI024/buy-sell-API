@@ -2,7 +2,7 @@
 {
     public class PurchaseDto
     {
-        public int SupplierId { get; set; }
-        public List<PurchaseItemDto> Items { get; set; }
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 }

@@ -1,43 +1,68 @@
 ﻿using buy_sell_project.Data;
 using buy_sell_project.DTO;
 using buy_sell_project.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace buy_sell_project.Services
 {
-    public class SaleService
+    public class SaleService : ISaleService
     {
         private readonly AppDbContext _context;
-        public SaleService(AppDbContext context) => _context = context;
 
-        public async Task<Sale> CreateSaleAsync(SaleDto dto)
+        public SaleService(AppDbContext context)
         {
+            _context = context;
+        }
+        public async Task<(bool Success, string Message)> CreateSale(int productId, int quantity, int userId)
+        {
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (customer == null)
+                return (false, "Customer not found");
+
+            var product = await _context.Products.FindAsync(productId);
+
+            if (product == null)
+                return (false, "Product not found");
+
+            if (!product.IsActive)
+                return (false, "Product is not available");
+
+            if (product.Quantity < quantity)
+                return (false, $"Not enough stock. Available quantity: {product.Quantity}");
+
+            
+            product.Quantity -= quantity;
+
             var sale = new Sale
             {
-                CustomerId = dto.CustomerId,
+                CustomerId = customer.Id,
                 Date = DateTime.Now,
-                Items = dto.Items.Select(i => new SaleItem
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    Price = i.Price
-                }).ToList()
-            };
-
-            foreach (var item in sale.Items)
+                Items = new List<SaleItem>
+        {
+            new SaleItem
             {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product == null)
-                    throw new Exception("Product not found");
-
-                if (product.Quantity < item.Quantity)
-                    throw new Exception($"Not enough stock for {product.Name}");
-
-                product.Quantity -= item.Quantity;
+                ProductId = productId,
+                Quantity = quantity,
+                SalePrice = product.SalePrice
             }
+        }
+            };
 
             _context.Sales.Add(sale);
             await _context.SaveChangesAsync();
-            return sale;
+
+            return (true, "Purchase successful");
         }
+
+        public async Task<List<Product>> GetAvailableProducts()
+        {
+           return await _context.Products
+                .Where(p=>p.IsActive && p.Quantity>0)
+                .ToListAsync();
+        }
+       
+
     }
 }

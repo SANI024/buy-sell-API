@@ -16,5 +16,6 @@ namespace buy_sell_project.Data
         public DbSet<PurchaseItem> PurchaseItems { get; set; }
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleItem> SaleItems { get; set; }
+        public DbSet<SupplierProduct> SupplierProduct { get; set; }
     }
 }

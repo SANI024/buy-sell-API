@@ -7,7 +7,6 @@
         public decimal PurchasePrice { get; set; }
         public decimal SalePrice { get; set; }
         public int Quantity { get; set; }
-        public ICollection<PurchaseItem> PurchaseItems { get; set; }
-        public ICollection<SaleItem> SaleItems { get; set; }
+        public bool IsActive { get; set; }
     }
 }

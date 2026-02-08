@@ -1,4 +1,5 @@
 using buy_sell_project.Data;
+using buy_sell_project.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,19 +10,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Database
-
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 
-// Controllers
+// Services / DI
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ISaleService, SaleService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<SupplierService>();
+builder.Services.AddScoped<AuthService>();
 
+// Controllers
 builder.Services.AddControllers();
 
 
 // Swagger
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -59,8 +64,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// JWT Authentication
 
+// JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -75,8 +80,8 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
 
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],      
+        ValidAudience = builder.Configuration["Jwt:Audience"],  
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
@@ -84,11 +89,20 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+
+// Build App
 var app = builder.Build();
 
 
-// Middleware
+// DB Seed
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DbSeeder.Seed(context);  
+}
 
+
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,8 +115,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();  
+app.UseAuthorization();   
 
 app.MapControllers();
 

@@ -3,6 +3,7 @@
     public class SaleDto
     {
         public int CustomerId { get; set; }
-        public List<SaleItemDto> Items { get; set; }
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 }
